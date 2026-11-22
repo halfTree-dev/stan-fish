@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+
+.env
+.env.*
+
+certs/
+
+.idea/
+*.suo
+*.njsproj
+*.sln
+*.sw?
+
+.kilo/

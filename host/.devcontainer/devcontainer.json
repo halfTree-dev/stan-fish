@@ -1,0 +1,24 @@
+{
+  "name": "stan-fish host",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "dev"
+  },
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite dev server",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": ["Vue.volar", "kilocode.kilo-code"]
+    }
+  },
+  "remoteUser": "node"
+}
+
+// 工作区会被挂载到 /workspaces/host 中，并安装环境与必要的工作区扩展
