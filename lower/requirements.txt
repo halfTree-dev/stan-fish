@@ -1,2 +1,4 @@
+aiomqtt==2.5.1
+pyee==16.1.0
 paho-mqtt==2.2.0
 python-periphery==2.5.0

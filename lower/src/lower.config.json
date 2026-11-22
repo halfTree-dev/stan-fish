@@ -1,0 +1,16 @@
+{
+    "client_name": "KingFish",
+
+    "mqtt_broker": "118.31.125.203",
+    "mqtt_port": 19961,
+    "mqtt_use_tls": true,
+    "mqtt_tls_cert_path": "",
+
+    "mqtt_user_name": "fish",
+    "mqtt_password_env_name": "MQTT_PASS",
+
+    "mqtt_connect_retry_interval": 5,
+
+    "watchdog_client_send_interval_ms": 3000,
+    "watchdog_server_timeout_ms": 8000
+}
