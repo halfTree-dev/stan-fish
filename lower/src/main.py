@@ -31,7 +31,8 @@ async def main() -> None:
         loop.add_signal_handler(sig, stop.set)
 
     mqtt = MqttService(config)
-    manager = Manager(mqtt)
+    uuid_path = Path(__file__).parent / "uuid.config.json"
+    manager = Manager(mqtt, config, uuid_path)
 
     logger.info("Starting lower services.")
     # asyncio.gather 将两个 run 协程发配到同一个事件循环，然后创建任务执行

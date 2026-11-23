@@ -144,10 +144,6 @@ class MqttService:
             topic = str(message.topic)
             payload = bytes(message.payload)
             self.events.emit("message", topic, payload)
-            self._dispatch_user_event(topic, payload)
-
-    def _dispatch_user_event(self, topic: str, payload: bytes) -> None:
-        pass
 
     # 发送
     async def publish(

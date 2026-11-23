@@ -11,6 +11,8 @@
 
     "mqtt_connect_retry_interval": 5,
 
-    "watchdog_client_send_interval_ms": 3000,
-    "watchdog_server_timeout_ms": 8000
+    "alive_interval_ms": 1000,
+    "alive_timeout_ms": 6000,
+    "obey_interval_ms": 1000,
+    "dominate_timeout_ms": 6000
 }
