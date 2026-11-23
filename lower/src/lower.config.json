@@ -14,5 +14,41 @@
     "alive_interval_ms": 1000,
     "alive_timeout_ms": 6000,
     "obey_interval_ms": 1000,
-    "dominate_timeout_ms": 6000
+    "dominate_timeout_ms": 6000,
+
+    "hardware_mode": "real",
+    "device_update_interval_ms": 500,
+    "device_status_interval_ms": 2000,
+    "device_call_timeout_ms": 2000,
+    "device_stop_timeout_ms": 3000,
+    "device_restart_interval_ms": 5000,
+
+    "thruster": {
+        "frequency_hz": 50,
+        "neutral_duty": 0.075,
+        "range_duty": 0.025,
+        "channels": {
+            "1": {"chip": 1, "channel": 0},
+            "2": {"chip": 1, "channel": 1}
+        }
+    },
+    "magnet": {
+        "gpio": {"chip": "/dev/gpiochip0", "line": 0}
+    },
+    "light": {
+        "gpios": {
+            "1": {"chip": "/dev/gpiochip0", "line": 0},
+            "2": {"chip": "/dev/gpiochip0", "line": 0}
+        }
+    },
+    "gnss": {
+        "device": "/dev/ttyUSB0",
+        "baudrate": 115200,
+        "stale_after_ms": 10000
+    },
+    "camera": {
+        "source_url_env_name": "CAMERA_SOURCE_URL",
+        "publish_base_url_env_name": "MEDIAMTX_PUBLISH_URL",
+        "restart_backoff_max_s": 30
+    }
 }

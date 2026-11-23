@@ -40,6 +40,7 @@ class Manager:
         self._dominate_topic = f"host/dominate/{self._id}"
         self._betray_topic = f"host/betray/{self._id}"
         self._command_topic = f"host/command/{self._id}"
+        self._request_full_update_topic = f"host/request_full_update/{self._id}"
 
         # MQTT 对象
         # 从 MQTT 网络层传入事件
@@ -51,6 +52,12 @@ class Manager:
         # 定时器事件驱动广播与超时扫描
         self.events.on("tick", self._on_tick)
 
+    # 类似于 CSharp，可以为字段名定义 getter 和 setter，令其成为属性，访问者将受到代码行为规范
+    # 此处单个 property 为 getter，现在 UUID 是默认只读字段
+    @property
+    def id(self) -> str:
+        return self._id
+
     async def run(self, stop: asyncio.Event) -> None:
         # 订阅协议话题
         # 重连后 MQTT 会自动重连
@@ -58,6 +65,7 @@ class Manager:
         await self._mqtt.subscribe(self._dominate_topic)
         await self._mqtt.subscribe(self._betray_topic)
         await self._mqtt.subscribe(self._command_topic)
+        await self._mqtt.subscribe(self._request_full_update_topic)
         # 启用定时器
         ticker = asyncio.create_task(self._tick_loop(stop))
         try:
@@ -165,6 +173,8 @@ class Manager:
             await self._handle_betray(data)
         elif topic == self._command_topic:
             await self._handle_command(data)
+        elif topic == self._request_full_update_topic:
+            await self._handle_request_full_update(data)
 
     # 接收到主机 alive 消息
     async def _handle_alive(self, data: dict[str, Any]) -> None:
@@ -218,15 +228,34 @@ class Manager:
 
     # 执行命令
     async def _handle_command(self, data: dict[str, Any]) -> None:
+        host_id = data.get("host_id")
         if (
             data.get("type") != "command"
             or data.get("lower_id") != self._id
-            or data.get("host_id") != self._controller_id
+            or self._controller_id is None
+            or not isinstance(host_id, str)
+            or host_id != self._controller_id
         ):
             logger.warning("invalid command message ignored")
             return
         # 校验合理的命令将触发命令事件
         self.events.emit("command", data.get("command"))
+
+    # 准备触发全量更新
+    async def _handle_request_full_update(self, data: dict[str, Any]) -> None:
+        host_id = data.get("host_id")
+        if (
+            data.get("type") != "request_full_update"
+            or data.get("lower_id") != self._id
+        ):
+            logger.warning("Invalid request_full_update message ignored")
+            return
+        if not isinstance(host_id, str) or not host_id or host_id not in self._alive_hosts:
+            logger.warning(
+                "request_full_update from unknown host %s ignored", host_id
+            )
+            return
+        self.events.emit("request_full_update", host_id)
 
     # 发送自身存活
     async def _send_alive(self) -> None:
@@ -258,6 +287,7 @@ class Manager:
         self._controller_id = None
         self._controller_last_seen = None
         self._next_obey_send = None
+        self.events.emit("control_cleared", reason)
 
     # 发送主动断开连接指令
     async def betray(self) -> None:
