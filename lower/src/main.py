@@ -7,7 +7,7 @@ import logging
 import signal
 from pathlib import Path
 
-from device import build_devices
+from device import Hardware, build_devices
 from manager.devices import DeviceManager
 from manager.manager import Manager
 from network.mqtt import MqttService
@@ -35,13 +35,21 @@ async def main() -> None:
     mqtt = MqttService(config)
     uuid_path = Path(__file__).parent / "uuid.config.json"
     manager = Manager(mqtt, config, uuid_path)
-    devices = build_devices(config, manager.id)
+
+    # Hardware 负责管理硬件的子进程，也提供操作句柄
+    hardware = Hardware()
+    # Device 利用 Hardware 的接口记录设备状态，执行外设操作
+    devices = build_devices(config, manager.id, hardware)
     device_manager = DeviceManager(devices, manager, mqtt, config)
 
     logger.info("Starting lower services.")
     # asyncio.gather 将多个 run 协程发配到同一个事件循环，然后创建任务执行
     # 仅当所有协程都停止，才会停止阻塞
-    await asyncio.gather(mqtt.run(stop), manager.run(stop), device_manager.run(stop))
+    try:
+        await asyncio.gather(mqtt.run(stop), manager.run(stop), device_manager.run(stop))
+    finally:
+        # 阻塞直到全部子进程终结，保证它们不比本程序活得久
+        hardware.close()
     logger.info("Stopped lower services.")
 
 

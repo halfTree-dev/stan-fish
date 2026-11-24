@@ -22,9 +22,11 @@ class DeviceManager:
         # 读取硬件设定参数
         # 硬件更新函数调用间隔
         self._update_interval = config["device_update_interval_ms"] / 1000.0
-        # 硬件操作函数，如 start, stop 等执行的超时时间
+        # 硬件操作函数，如 start, do_command 等执行的超时时间
         self._call_timeout = config["device_call_timeout_ms"] / 1000.0
+        # 停止外设，调用 stop 的超时事件
         self._stop_timeout = config["device_stop_timeout_ms"] / 1000.0
+        # 标记 available 为 False 的设备在指定超时后重启
         self._restart_interval = config["device_restart_interval_ms"] / 1000.0
 
         self._locks: dict[str, asyncio.Lock] = {name: asyncio.Lock() for name in devices}
@@ -152,6 +154,7 @@ class DeviceManager:
 
     async def _tick_device(self, name: str, device: Device, at: float) -> None:
         if not device.available:
+            # 由于某些原因启动失败的硬件会尝试重启
             await self._retry_start(name, device)
             return
         if self._locks[name].locked():

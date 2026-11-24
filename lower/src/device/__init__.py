@@ -4,12 +4,12 @@
 from typing import Any
 
 from device.base import Device
-from device.camera import Camera
-from device.gnss import Gnss
+from device.peripherals.camera import Camera
+from device.peripherals.gnss import Gnss
 from device.hardware import Hardware
-from device.light import Light
-from device.magnet import Magnet
-from device.thruster import Thruster
+from device.peripherals.light import Light
+from device.peripherals.magnet import Magnet
+from device.peripherals.thruster import Thruster
 
 
 # 从配置文件中读取指定设备的配置
@@ -20,8 +20,9 @@ def _section(config: dict[str, Any], name: str) -> dict[str, Any]:
     return section
 
 # 构建设备对象，实例化对象
-def build_devices(config: dict[str, Any], manager_id: str) -> dict[str, Device]:
-    hardware = Hardware(config.get("hardware_mode") == "mock")
+def build_devices(
+    config: dict[str, Any], manager_id: str, hardware: Hardware
+) -> dict[str, Device]:
     report_interval = config["device_status_interval_ms"] / 1000.0
     devices: list[Device] = [
         Thruster(hardware, _section(config, "thruster")),

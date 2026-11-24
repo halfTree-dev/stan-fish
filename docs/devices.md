@@ -238,3 +238,97 @@ latitude 与 longitude 的 degrees 是带符号的十进制度，南纬与西经
 ## 失控复位
 
 下位机在控制清除（dominate 超时、收到 betray、下位机主动 betray）以及 MQTT 会话断线时，将全部推进器的 value 置 0，即占空比回到 7.5%；警示灯、电磁铁、摄像头与定位装置的状态保持不变。复位后下位机照常上报推进器状态。
+
+
+# 无人船工控机硬件情况
+
+要操作上述外设，必须利用板卡本身的 GPIO, PWM, Serial 能力，计划采用 periphery 的 Python 软件包控制
+
+对于 GPIO，可以使用外设地址和偏移量控制
+```python
+from periphery import GPIO
+
+LED_CHIP = "/dev/gpiochip0"
+LED_LINE_OFFSET = 8
+
+led = GPIO(LED_CHIP, LED_LINE_OFFSET, "out")
+
+led.write(True)
+led.close()
+```
+
+对于 PWM，可以使用标号和频道控制
+```python
+from periphery import PWM
+import time
+
+try:
+    pwm = PWM(2, 0)
+    pwm.frequency = 1e3
+    pwm.duty_cycle = 0.00
+    pwm.enable()
+    while True:
+        for i in range(0, 20):
+            time.sleep(0.05)
+            pwm.duty_cycle = round(pwm.duty_cycle + 0.05, 2)
+except:
+    print("Some errors occur!\n")
+finally:
+    pwm.duty_cycle = 1.0
+    pwm.close()
+```
+
+对于 Serial，可以使用设备地址和 Baudrate 控制
+```python
+from periphery import Serial
+
+try:
+    serial = Serial(
+        "/dev/ttymxc2",
+        baudrate=115200,
+        databits=8,
+        parity="none",
+        stopbits=1,
+        xonxoff=False,
+        rtscts=False,
+    )
+    serial.write(b"Hello World!\n")
+    buf = serial.read(128, 1)
+
+    print("原始数据: \n", buf)
+
+    data_strings = buf.decode("gbk")
+    print("读取到 {:d} 个字节 , 以字符串形式打印:\n {:s}".format(len(buf), data_strings))
+finally:
+    serial.close()
+```
+
+以下网址表明了 IO 编号和设备地址的关系：https://doc.embedfire.com/linux/rk356x/quick_start/zh/latest/quick_start/40pin/gpio/gpio.html
+
+```json
+    "thruster": {
+        "frequency_hz": 50,
+        "neutral_duty": 0.075,
+        "range_duty": 0.025,
+        "channels": {
+            "1": {"chip": 1, "channel": 0},
+            "2": {"chip": 1, "channel": 1}
+        }
+    },
+    "magnet": {
+        "gpio": {"chip": "/dev/gpiochip0", "line": 0}
+    },
+    "light": {
+        "gpios": {
+            "1": {"chip": "/dev/gpiochip0", "line": 0},
+            "2": {"chip": "/dev/gpiochip0", "line": 0}
+        }
+    },
+    "gnss": {
+        "device": "/dev/ttyUSB0",
+        "baudrate": 115200,
+        "stale_after_ms": 10000
+    },
+```
+
+

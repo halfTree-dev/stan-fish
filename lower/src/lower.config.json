@@ -16,11 +16,10 @@
     "obey_interval_ms": 1000,
     "dominate_timeout_ms": 6000,
 
-    "hardware_mode": "real",
     "device_update_interval_ms": 500,
     "device_status_interval_ms": 2000,
     "device_call_timeout_ms": 2000,
-    "device_stop_timeout_ms": 3000,
+    "device_stop_timeout_ms": 12000,
     "device_restart_interval_ms": 5000,
 
     "thruster": {
